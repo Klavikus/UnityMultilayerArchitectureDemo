@@ -2,7 +2,7 @@
 
 namespace Sources.Controllers.Api.Services
 {
-    public interface IGameLoopService
+    public interface IGameLoopService : IUpdatable
     {
         event Action PlayerDied;
         event Action<float> ScoreUpdated;
@@ -10,6 +10,5 @@ namespace Sources.Controllers.Api.Services
         
         void Start();
         void Stop();
-        void Update();
     }
 }

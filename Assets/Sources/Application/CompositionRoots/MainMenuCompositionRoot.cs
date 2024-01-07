@@ -7,6 +7,8 @@ using Sources.Controllers.Core.ViewModels;
 using Sources.Controllers.Core.WindowFsms;
 using Sources.Controllers.Core.WindowFsms.Windows;
 using Sources.Infrastructure.Api.GameFsm;
+using Sources.Infrastructure.Api.Services;
+using Sources.Infrastructure.Core.Services;
 using Sources.Infrastructure.Core.Services.DI;
 using Sources.Presentation.Core;
 using UnityEngine;
@@ -19,6 +21,8 @@ namespace Sources.Application.CompositionRoots
 
         public override void Initialize(ServiceContainer serviceContainer)
         {
+            IDisposeHandler sceneDisposeHandler = new GameObject(nameof(SceneDisposeHandler)).AddComponent<SceneDisposeHandler>();
+
             Dictionary<Type, IWindow> windows = new Dictionary<Type, IWindow>()
             {
                 [typeof(RootWindow)] = new RootWindow(),
@@ -30,6 +34,8 @@ namespace Sources.Application.CompositionRoots
           
             MainMenuViewModel mainMenuViewModel = new MainMenuViewModel(windowFsm, gameStateMachine, persistentDataService);
 
+            sceneDisposeHandler.Register(mainMenuViewModel);
+            
             _mainMenuView.Initialize(mainMenuViewModel);
         }
     }

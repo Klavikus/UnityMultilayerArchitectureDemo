@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Sources.Controllers.Core.Services
 {
-    public class GameLoopService : IGameLoopService
+    public class GameLoopService : IGameLoopService, IDisposable
     {
         private readonly IShipPresenterFactory _shipPresenterFactory;
         private readonly IEnemySpawner _enemySpawner;
@@ -13,6 +13,7 @@ namespace Sources.Controllers.Core.Services
 
         private readonly Vector3 _playerSpawnPosition;
         private readonly IPersistentDataService _persistentDataService;
+        private readonly IUpdateService _updateService;
 
         private Coroutine _spawnRoutine;
         private IShipPresenter _playerShip;
@@ -25,7 +26,8 @@ namespace Sources.Controllers.Core.Services
             IEnemySpawner enemySpawner,
             ILevelProgressCounter levelProgressCounter,
             Vector3 playerSpawnPosition,
-            IPersistentDataService persistentDataService
+            IPersistentDataService persistentDataService,
+            IUpdateService updateService
         )
         {
             _shipPresenterFactory = shipPresenterFactory;
@@ -33,6 +35,7 @@ namespace Sources.Controllers.Core.Services
             _levelProgressCounter = levelProgressCounter;
             _playerSpawnPosition = playerSpawnPosition;
             _persistentDataService = persistentDataService;
+            _updateService = updateService;
         }
 
         public event Action PlayerDied;
@@ -53,29 +56,40 @@ namespace Sources.Controllers.Core.Services
             _levelProgressCounter.Updated += UpdateScore;
             _persistentDataService.BestScoreChanged += UpdateBestScore;
 
+            _updateService.Register(this);
+
             _levelProgressCounter.Start();
             _enemySpawner.Enable();
         }
 
         public void Stop()
         {
+            _updateService.Unregister(this);
+
             _inProgress = false;
-           
+
             _playerShip.Destroyed -= OnPlayerShipDestroyed;
             _levelProgressCounter.Updated -= UpdateScore;
             _persistentDataService.BestScoreChanged -= UpdateBestScore;
-            
+
             _enemySpawner.Disable();
             _levelProgressCounter.Stop();
         }
 
-        public void Update()
+        public void Update(float deltaTime)
         {
             if (_inProgress == false)
                 return;
 
             _enemySpawner.Update();
-            _levelProgressCounter.Update(Time.deltaTime);
+            _levelProgressCounter.Update(deltaTime);
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+
+            Stop();
         }
 
         private void OnPlayerShipDestroyed(IShipPresenter _)
@@ -92,7 +106,7 @@ namespace Sources.Controllers.Core.Services
                 _persistentDataService.SetBestScore(progress);
         }
 
-        private void UpdateBestScore(float score) => 
+        private void UpdateBestScore(float score) =>
             BestScoreChanged?.Invoke(score);
     }
 }

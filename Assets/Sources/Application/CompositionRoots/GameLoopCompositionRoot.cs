@@ -13,6 +13,7 @@ using Sources.Domain.Factories;
 using Sources.Infrastructure.Api.GameFsm;
 using Sources.Infrastructure.Api.Services;
 using Sources.Infrastructure.Api.Services.Providers;
+using Sources.Infrastructure.Core.Services;
 using Sources.Infrastructure.Core.Services.DI;
 using Sources.Presentation.Core;
 using UnityEngine;
@@ -24,26 +25,28 @@ namespace Sources.Application.CompositionRoots
         [SerializeField] private GameLoopView _gameLoopView;
         [SerializeField] private LoseView _loseView;
 
-        private IGameLoopService _gameLoopService;
-        private bool _isInitialized;
-
         public override void Initialize(ServiceContainer serviceContainer)
         {
             IConfigurationProvider configurationProvider = serviceContainer.Single<IConfigurationProvider>();
+            IPersistentDataService persistentDataService = serviceContainer.Single<IPersistentDataService>();
+            IGameStateMachine gameStateMachine = serviceContainer.Single<IGameStateMachine>();
+            IUpdateService updateService = serviceContainer.Single<IUpdateService>();
 
             IShipFactory shipFactory = new ShipFactory();
             IShipPresenterFactory shipPresenterFactory = new ShipPresenterFactory(shipFactory, configurationProvider);
             IEnemySpawner enemyEnemySpawner = new EnemySpawner(shipFactory, shipPresenterFactory, this, configurationProvider);
             ILevelProgressCounter levelProgressCounter = new LevelProgressCounter();
-            IPersistentDataService persistentDataService = serviceContainer.Single<IPersistentDataService>();
 
-            _gameLoopService = new GameLoopService
+            IDisposeHandler sceneDisposeHandler = new GameObject(nameof(SceneDisposeHandler)).AddComponent<SceneDisposeHandler>();
+          
+            GameLoopService gameLoopService = new GameLoopService
             (
                 shipPresenterFactory,
                 enemyEnemySpawner,
                 levelProgressCounter,
                 configurationProvider.PlayerSpawnPosition,
-                persistentDataService
+                persistentDataService,
+                updateService
             );
 
             Dictionary<Type, IWindow> windows = new Dictionary<Type, IWindow>()
@@ -55,22 +58,15 @@ namespace Sources.Application.CompositionRoots
 
             IWindowFsm windowFsm = new WindowFsm<RootWindow>(windows);
 
-            IGameStateMachine gameStateMachine = serviceContainer.Single<IGameStateMachine>();
-            GameLoopViewModel gameLoopViewModel = new GameLoopViewModel(windowFsm, gameStateMachine, _gameLoopService);
+            GameLoopViewModel gameLoopViewModel = new GameLoopViewModel(windowFsm, gameStateMachine, gameLoopService);
+
+            sceneDisposeHandler.Register(gameLoopService);
+            sceneDisposeHandler.Register(gameLoopViewModel);
             
             _gameLoopView.Initialize(gameLoopViewModel);
             _loseView.Initialize(gameLoopViewModel);
 
-            _gameLoopService.Start();
-            _isInitialized = true;
-        }
-
-        public void Update()
-        {
-            if (_isInitialized == false)
-                return;
-
-            _gameLoopService.Update();
+            gameLoopService.Start();
         }
     }
 }
