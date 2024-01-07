@@ -18,7 +18,7 @@ namespace Sources.Presentation.Core
             if (_currentOffset * _currentOffset > _offsetResetThreshold * _offsetResetThreshold)
                 _currentOffset = _offsetResetVerticalValue;
 
-            _meshRenderer.sharedMaterial.mainTextureOffset = new Vector2(0, _currentOffset);
+            _meshRenderer.material.mainTextureOffset = new Vector2(0, _currentOffset);
         }
     }
 }
