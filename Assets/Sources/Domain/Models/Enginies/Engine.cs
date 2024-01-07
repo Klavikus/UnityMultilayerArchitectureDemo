@@ -1,4 +1,4 @@
-﻿namespace Sources.Domain.Models.Enginies
+﻿namespace Sources.Domain.Models.Engines
 {
     public class Engine : IEngine
     {
