@@ -54,10 +54,13 @@ namespace Sources.Application
             ISaveService saveService = new SaveService();
             IPersistentDataService persistentDataService = new PersistentDataService(saveService);
 
+            IUpdateService updateService = new UpdateService();
+            
             _services.RegisterAsSingle<IGameStateMachine>(_gameStateMachine);
             _services.RegisterAsSingle(coroutineRunner);
             _services.RegisterAsSingle(configurationProvider);
             _services.RegisterAsSingle(persistentDataService);
+            _services.RegisterAsSingle(updateService);
 
             _services.LockRegister();
         }
