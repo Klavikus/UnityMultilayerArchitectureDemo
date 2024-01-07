@@ -11,10 +11,8 @@ namespace Sources.Controllers.Core.Services
 
         public float Value => _currentTime;
 
-        public void Start()
-        {
+        public void Start() =>
             _currentTime = 0;
-        }
 
         public void Update(float deltaTime)
         {
@@ -22,9 +20,7 @@ namespace Sources.Controllers.Core.Services
             Updated?.Invoke(_currentTime);
         }
 
-        public void Stop()
-        {
+        public void Stop() =>
             Updated?.Invoke(_currentTime);
-        }
     }
 }

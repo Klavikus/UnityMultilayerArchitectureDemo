@@ -19,6 +19,7 @@ namespace Sources.Application
 
         public void Finish()
         {
+            //TODO: Cleanup application resources
         }
     }
 }

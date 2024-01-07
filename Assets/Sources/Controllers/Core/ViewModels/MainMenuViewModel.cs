@@ -9,7 +9,7 @@ using Sources.Infrastructure.Api.GameFsm;
 
 namespace Sources.Controllers.Core.ViewModels
 {
-    public class MainMenuViewModel : IDisposable, IMainMenuViewModel
+    public class MainMenuViewModel : IMainMenuViewModel, IDisposable
     {
         private readonly IWindowFsm _windowFsm;
         private readonly IGameStateMachine _gameStateMachine;
